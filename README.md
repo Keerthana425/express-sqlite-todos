@@ -47,6 +47,7 @@ date-fns → date validation & formatting
 sqlite → database connection
 
 🧩 Database Schema
+
 Todo Table
 Column	Type	Description
 id	INTEGER	Unique task ID
@@ -55,7 +56,9 @@ priority	TEXT	HIGH / MEDIUM / LOW
 status	TEXT	TO DO / IN PROGRESS / DONE
 category	TEXT	WORK / HOME / LEARNING
 due_date	DATE	Task deadline
+
 ⚙️ Core Features
+
 ✅ 1. Create Todo
 
 Add tasks with priority, status, category, and due date.
