@@ -114,6 +114,7 @@ Uses date-fns to ensure correct due date formatting and validation.
 ✔ Dynamic Query Filtering
 
 Builds SQL queries based on user filters.
+
 👩‍💻 Author
 
 Keerthana Reddy Full Stack Developer
