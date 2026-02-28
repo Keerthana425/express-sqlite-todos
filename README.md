@@ -1,5 +1,7 @@
 🗂 Todo Application API
+
 RESTful Task Management Service using Node.js & SQLite
+
 📌 Project Overview
 
 This project is a backend REST API that manages daily tasks with priority, category, status tracking, and due date scheduling.
