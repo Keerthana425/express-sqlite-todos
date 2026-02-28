@@ -1,292 +1,120 @@
-const express = require('express')
-const app = express()
-app.use(express.json())
-const path = require('path')
-const dbpath = path.join(__dirname, 'todoApplication.db')
-const {open} = require('sqlite')
-const sqlite3 = require('sqlite3')
-let db = null
-const format = require('date-fns/format')
-const isValid = require('date-fns/isValid')
-const toDate = require('date-fns/toDate')
+🗂 Todo Application API
 
-const initalconnectionServerToDb = async () => {
-  try {
-    db = await open({
-      filename: dbpath,
-      driver: sqlite3.Database,
-    })
-    app.listen(3000, () => {
-      console.log('Server Running at port...3000')
-    })
-  } catch (e) {
-    console.log(`DB Error : ${e.message}`)
-    process.exit(1)
-  }
-}
+RESTful Task Management Service using Node.js & SQLite
 
-initalconnectionServerToDb()
+📌 Project Overview
 
-const checkRequestsQueries = async (request, response, next) => {
-  const {search_q, category, priority, status, date} = request.query
-  const {todoId} = request.params
-  if (category !== undefined) {
-    const categoryArray = ['WORK', 'HOME', 'LEARNING']
-    const categoryIsInArray = categoryArray.includes(category)
-    if (categoryIsInArray === true) {
-      request.category = category
-    } else {
-      response.status(400)
-      response.send('Invalid Todo Category')
-      return
-    }
-  }
+This project is a backend REST API that manages daily tasks with priority, category, status tracking, and due date scheduling.
 
-  if (priority !== undefined) {
-    const priorityArray = ['HIGH', 'MEDIUM', 'LOW']
-    const priorityIsInArray = priorityArray.includes(priority)
-    if (priorityIsInArray === true) {
-      request.priority = priority
-    } else {
-      response.status(400)
-      response.send('Invalid Todo Priority')
-      return
-    }
-  }
+It enables users to:
 
-  if (status !== undefined) {
-    const statusArray = ['TO DO', 'IN PROGRESS', 'DONE']
-    const statusIsInArray = statusArray.includes(status)
-    if (statusIsInArray === true) {
-      request.status = status
-    } else {
-      response.status(400)
-      response.send('Invalid Todo Status')
-      return
-    }
-  }
+✔ create tasks
+✔ filter & search todos
+✔ track progress
+✔ manage deadlines
+✔ update task status dynamically
 
-  if (date !== undefined) {
-    try {
-      const myDate = new Date(date)
+The system is built for efficiency, validation accuracy, and structured task tracking.
 
-      const formatedDate = format(new Date(date), 'yyyy-MM-dd')
+🎯 Problem It Solves
 
-      const result = toDate(
-        new Date(
-          `${myDate.getFullYear()}-${
-            myDate.getMonth() + 1
-          }-${myDate.getDate()}`,
-        ),
-      )
+Traditional task lists lack:
 
-      const isValidDate = await isValid(result)
+• structured prioritization
+• category organization
+• deadline tracking
+• progress monitoring
+• filtered retrieval
 
-      if (isValidDate === true) {
-        request.date = formatedDate
-      } else {
-        response.status(400)
-        response.send('Invalid Due Date')
-        return
-      }
-    } catch (e) {
-      response.status(400)
-      response.send('Invalid Due Date')
-      return
-    }
-  }
+This API provides a structured productivity engine for task management systems.
 
-  request.todoId = todoId
-  request.search_q = search_q
+🛠 Technology Stack
 
-  next()
-}
+Backend
 
-const checkRequestsBody = (request, response, next) => {
-  const {id, todo, category, priority, status, dueDate} = request.body
-  const {todoId} = request.params
+Node.js
 
-  if (category !== undefined) {
-    categoryArray = ['WORK', 'HOME', 'LEARNING']
-    categoryIsInArray = categoryArray.includes(category)
+Express.js
 
-    if (categoryIsInArray === true) {
-      request.category = category
-    } else {
-      response.status(400)
-      response.send('Invalid Todo Category')
-      return
-    }
-  }
+Database
 
-  if (priority !== undefined) {
-    priorityArray = ['HIGH', 'MEDIUM', 'LOW']
-    priorityIsInArray = priorityArray.includes(priority)
-    if (priorityIsInArray === true) {
-      request.priority = priority
-    } else {
-      response.status(400)
-      response.send('Invalid Todo Priority')
-      return
-    }
-  }
+SQLite
 
-  if (status !== undefined) {
-    statusArray = ['TO DO', 'IN PROGRESS', 'DONE']
-    statusIsInArray = statusArray.includes(status)
-    if (statusIsInArray === true) {
-      request.status = status
-    } else {
-      response.status(400)
-      response.send('Invalid Todo Status')
-      return
-    }
-  }
+Libraries
 
-  if (dueDate !== undefined) {
-    try {
-      const myDate = new Date(dueDate)
-      const formatedDate = format(new Date(dueDate), 'yyyy-MM-dd')
+date-fns → date validation & formatting
 
-      const result = toDate(new Date(formatedDate))
-      const isValidDate = isValid(result)
+sqlite → database connection
 
-      if (isValidDate === true) {
-        request.dueDate = formatedDate
-      } else {
-        response.status(400)
-        response.send('Invalid Due Date')
-        return
-      }
-    } catch (e) {
-      response.status(400)
-      response.send('Invalid Due Date')
-      return
-    }
-  }
-  request.todo = todo
-  request.id = id
+🧩 Database Schema
+Todo Table
+Column	Type	Description
+id	INTEGER	Unique task ID
+todo	TEXT	Task description
+priority	TEXT	HIGH / MEDIUM / LOW
+status	TEXT	TO DO / IN PROGRESS / DONE
+category	TEXT	WORK / HOME / LEARNING
+due_date	DATE	Task deadline
+⚙️ Core Features
+✅ 1. Create Todo
 
-  request.todoId = todoId
+Add tasks with priority, status, category, and due date.
 
-  next()
-}
+✅ 2. Retrieve Todos
 
-app.get(`/todos/`, checkRequestsQueries, async (request, response) => {
-  const {search_q = '', priority, status, category} = request
-  const catandstatus = obj => {
-    return obj.status !== undefined && obj.category !== undefined
-  }
-  const todoStatus = obj => {
-    return obj.status !== undefined
-  }
-  const todoPriority = obj => {
-    return obj.priority !== undefined
-  }
-  const todoBoth = obj => {
-    return obj.status !== undefined && obj.priority !== undefined
-  }
-  const todocategory = obj => {
-    return obj.category !== undefined
-  }
+Filter using:
 
-  const catandpro = obj => {
-    return obj.category !== undefined && obj.priority !== undefined
-  }
-  let data = null
-  let getTodoQuery = ''
-  switch (true) {
-    case catandstatus(request.query):
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE status='${status}' AND category='${category}';`
-      break
-    case todocategory(request.query):
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE todo LIKE '%${search_q}%' AND category='${category}'`
-      break
+search text
 
-    case todoBoth(request.query):
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE todo LIKE '%${search_q}%' AND status='${status}' AND priority='${priority}'`
-      break
-    case todoStatus(request.query):
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE todo LIKE '%${search_q}%' AND status='${status}'`
-      break
-    case todoPriority(request.query):
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE todo LIKE '%${search_q}%' AND priority='${priority}'`
-      break
+category
 
-    case catandpro(request.query):
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE todo LIKE '%${search_q}%' AND priority='${priority}' AND category='${category}'`
-      break
-    default:
-      getTodoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE todo LIKE '%${search_q}%'`
-  }
-  data = await db.all(getTodoQuery)
-  response.send(data)
-})
+priority
 
-app.get(`/todos/:todoId/`, checkRequestsQueries, async (request, response) => {
-  const {todoId} = request.params
-  const todoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE id=${todoId};`
-  const dbResponse = await db.get(todoQuery)
-  response.send(dbResponse)
-})
+status
 
-app.get(`/agenda/`, checkRequestsQueries, async (request, response) => {
-  const {date} = request
+✅ 3. Retrieve Single Todo
 
-  const todoQuery = `SELECT id,todo,priority,status,category,due_date as dueDate FROM todo WHERE dueDate='${date}';`
-  const dbResponse = await db.all(todoQuery)
+Fetch task using ID.
 
-  response.send(dbResponse)
-})
+✅ 4. Agenda View
 
-app.post(`/todos/`, checkRequestsBody, async (request, response) => {
-  const {id, todo, priority, status, category, dueDate} = request
-  const updateQuerys = `INSERT INTO todo(id, todo, priority, status, category,due_date) VALUES(${id},'${todo}','${priority}','${status}','${category}','${dueDate}');`
-  const sd = await db.run(updateQuerys)
-  console.log(sd)
-  response.send('Todo Successfully Added')
-})
+View tasks due on a specific date.
 
-app.put(`/todos/:todoId/`, checkRequestsBody, async (request, response) => {
-  const {todoId} = request
-  const {status, category, priority, todo, dueDate} = request
-  let updateQuery = null
-  switch (true) {
-    case status !== undefined:
-      updateQuery = `UPDATE todo SET status='${status}' WHERE id=${todoId};`
-      await db.run(updateQuery)
-      response.send('Status Updated')
-      break
-    case category !== undefined:
-      updateQuery = `UPDATE todo SET category='${category}' WHERE id=${todoId};`
-      await db.run(updateQuery)
-      response.send('Category Updated')
-      break
-    case priority !== undefined:
-      updateQuery = `UPDATE todo SET priority='${priority}' WHERE id=${todoId};`
-      await db.run(updateQuery)
-      response.send('Priority Updated')
-      break
-    case todo !== undefined:
-      updateQuery = `UPDATE todo SET todo='${todo}' WHERE id=${todoId};`
-      await db.run(updateQuery)
-      response.send('Todo Updated')
-      break
-    case dueDate !== undefined:
-      updateQuery = `UPDATE todo SET due_date='${dueDate}' WHERE id=${todoId};`
-      await db.run(updateQuery)
-      response.send('Due Date Updated')
-      break
-  }
-})
-app.delete(
-  `/todos/:todoId/`,
-  checkRequestsQueries,
-  async (request, response) => {
-    const {todoId} = request.params
-    const deleteQuery = `DELETE FROM todo WHERE id=${todoId};`
-    await db.run(deleteQuery)
-    response.send('Todo Deleted')
-  },
-)
-module.exports = app
+✅ 5. Update Todo
+
+Update individual fields:
+
+✔ status
+✔ priority
+✔ category
+✔ task text
+✔ due date
+
+✅ 6. Delete Todo
+
+Remove tasks permanently.
+
+🔍 Advanced Functionalities
+✔ Input Validation Middleware
+
+Ensures:
+
+valid priority values
+
+valid categories
+
+valid statuses
+
+valid date format
+
+✔ Date Validation Engine
+
+Uses date-fns to ensure correct due date formatting and validation.
+
+✔ Dynamic Query Filtering
+
+Builds SQL queries based on user filters.
+
+👩‍💻 Author
+
+Keerthana Reddy Full Stack Developer
